@@ -1,5 +1,6 @@
 from django.urls import reverse
 from rest_framework.test import APITestCase
+from rest_framework import status
 from django.core.files.uploadedfile import SimpleUploadedFile
 from io import BytesIO
 from PIL import Image
@@ -36,14 +37,19 @@ class UsersMixin:
         phone = '(11) 11111-1111',
         photo = None
     ):
-        return serializers.UsersSerializerPost(data ={
+        
+        serializer = serializers.UsersSerializerPost(data ={
             "first_name": first_name,
             "last_name": last_name,
             "username":username,
             "password":password,
             "email":email,
-            "phone":phone}
+            "phone":phone
+            }
         )
+
+        if serializer.is_valid():
+            serializer.save()
     
     def make_user_for_comparison(
         self,
@@ -76,7 +82,7 @@ class UsersTest(APITestCase, UsersMixin ):
 
         self.assertIn(
             response.status_code,
-            [200, 204]
+            [status.HTTP_200_OK, status.HTTP_204_NO_CONTENT]
         )
 
     # Testando o Metodo Post, caso de sucesso sem foto
@@ -145,7 +151,7 @@ class UsersTest(APITestCase, UsersMixin ):
 
         response = self.client.post(api_url, data=invalid_data, format='json')
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("email", response.data)
         self.assertIn("password", response.data)
         self.assertIn("phone", response.data)
@@ -165,7 +171,7 @@ class UsersTest(APITestCase, UsersMixin ):
 
         response = self.client.post(api_url, data=invalid_data, format='json')
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("email", response.data)
         self.assertIn("password", response.data)
         self.assertIn("phone", response.data)
@@ -196,7 +202,7 @@ class UsersTest(APITestCase, UsersMixin ):
 
         response = self.client.post(api_url, data=valid_data, format='multipart')
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("photo", response.data)
 
 
@@ -226,7 +232,7 @@ class UsersTest(APITestCase, UsersMixin ):
 
         response = self.client.post(api_url, data=valid_data, format='multipart')
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("photo", response.data)
 
     # Tests de UsersDetailView
@@ -252,7 +258,7 @@ class UsersTest(APITestCase, UsersMixin ):
 
         self.assertEqual(
             response.status_code,
-            404
+            status.HTTP_404_NOT_FOUND
         )
 
 
@@ -270,7 +276,7 @@ class UsersTest(APITestCase, UsersMixin ):
 
         self.assertEqual(
             response.status_code,
-            200
+            status.HTTP_200_OK
         )
 
     # Testando a api em caso de Update, caso de falha, por motivos de duplicação de dados que deveriam ser unicos
@@ -288,7 +294,7 @@ class UsersTest(APITestCase, UsersMixin ):
 
         self.assertEqual(
             response.status_code,
-            400
+            status.HTTP_400_BAD_REQUEST
         )
         self.assertIn('username', response.data)
 
@@ -301,5 +307,5 @@ class UsersTest(APITestCase, UsersMixin ):
 
         self.assertEqual(
             response.status_code,
-            204
+            status.HTTP_204_NO_CONTENT
         )

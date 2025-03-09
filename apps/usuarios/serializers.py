@@ -50,14 +50,17 @@ class UsersSerializerPost(serializers.ModelSerializer):
         return value
     
     def create(self, validated_data):
-        # Criação automática da bolha, ao criar um usuário
-        id_user = validated_data.get('id')
-        print(id_user)
+        # Criar o usuário
+        user = super().create(validated_data)
 
-        bubble = BubbleSerializer(data = {'user': id_user})
-        if bubble.is_valid():
-            bubble.save()
+        # Criação automática da bolha para o novo usuário
+        bubble_data = {'user': user.id}
+        bubble_serializer = BubbleSerializer(data=bubble_data)
 
-        print(bubble)
+        if bubble_serializer.is_valid():
+            bubble_serializer.save()
+            print("Bolha criada com sucesso:", bubble_serializer.data)
+        else:
+            print("Erro ao criar a bolha:", bubble_serializer.errors)
 
-        return super().create(validated_data)
+        return user
