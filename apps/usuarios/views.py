@@ -24,20 +24,20 @@ class UserView(APIView):
             return Response('Nenhum usuário encontrado', status = status.HTTP_204_NO_CONTENT)
         except:
             return Response("ERROR", status = status.HTTP_400_BAD_REQUEST)
-  
-
+        
+class UserCreateView(APIView):
     def post(self, request):
         try:
             data = request.data
-            serializer = serializers.UsersSerializerPost(data = data)
+            serializer = serializers.UsersSerializer(data = data)
             
             if serializer.is_valid():
                 serializer.save()
                 return Response({'detail': 'Usuario criado com sucesso!!!'}, status=status.HTTP_201_CREATED)
             
             return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
-        except:
-            return Response("ERROR", status = status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status = status.HTTP_400_BAD_REQUEST)
 
 
 class UserDetailView(APIView):
@@ -56,7 +56,7 @@ class UserDetailView(APIView):
         try:
             data = request.data
             user = get_object_or_404(models.Users, username = username)
-            serializer = serializers.UsersSerializerPost(user, data = data, partial = True)
+            serializer = serializers.UsersSerializer(user, data = data, partial = True)
             if serializer.is_valid():
                 serializer.save()
                 return Response("Dados atualizados com sucesso!!", status = status.HTTP_200_OK)

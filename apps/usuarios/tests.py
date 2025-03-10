@@ -87,7 +87,7 @@ class UsersTest(APITestCase, UsersMixin ):
 
     # Testando o Metodo Post, caso de sucesso sem foto
     def test_users_api_create(self):
-        api_url = reverse('users:user_list')
+        api_url = reverse('users:user_create')
 
         # Dados válidos para criação de usuário
         valid_data = {
@@ -107,7 +107,7 @@ class UsersTest(APITestCase, UsersMixin ):
 
     # Testando o Metodo Post, caso de sucesso com foto
     def test_users_api_create_with_photo(self):
-        api_url = reverse('users:user_list')
+        api_url = reverse('users:user_create')
 
         image = Image.new('RGB', (100, 100), color='red')
         image_file = BytesIO()
@@ -139,7 +139,7 @@ class UsersTest(APITestCase, UsersMixin ):
 
     # Testando o Metodo Post, caso de falha, pelo fato dos campos email e password estarem ausentes
     def test_users_api_create_invalid(self):
-        api_url = reverse('users:user_list')
+        api_url = reverse('users:user_create')
 
         # Dados inválidos (faltando email e senha)
         invalid_data = {
@@ -158,7 +158,7 @@ class UsersTest(APITestCase, UsersMixin ):
 
     # Testando o Metodo Post, caso de falha, pelo fato dos campos email, password e phone estarem Invalidos
     def test_users_api_create_with_password_and_email_invalid(self):
-        api_url = reverse('users:user_list')
+        api_url = reverse('users:user_create')
 
         invalid_data = {
             "first_name": "Erro",
@@ -178,7 +178,7 @@ class UsersTest(APITestCase, UsersMixin ):
 
     # Testando o Metodo Post, caso de falha, pelo fato do tipo de imagem ser incompativel em validação
     def test_users_api_create_with_photo_invalid_for_type(self):
-        api_url = reverse('users:user_list')
+        api_url = reverse('users:user_create')
 
         image = Image.new('RGB', (100, 100), color='red')
         image_file = BytesIO()
@@ -208,7 +208,7 @@ class UsersTest(APITestCase, UsersMixin ):
 
     # Testando o Metodo Post, caso de falha, pelo fato do tamanho da imagem ser maior que a aceita em validação
     def test_users_api_create_with_photo_invalid_for_size(self):
-        api_url = reverse('users:user_list')
+        api_url = reverse('users:user_create')
 
         image = Image.new('RGB', (2000, 2000), color='red')
         image_file = BytesIO()

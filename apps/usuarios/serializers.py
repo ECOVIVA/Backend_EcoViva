@@ -14,19 +14,12 @@ from . import models
 """
 
 class UsersSerializer(serializers.ModelSerializer):
-    class Meta:
-        # Classe responsavel por definir qual model o serializer vai realizar as operações, e quais campos
-        # serão usados por ele.
-        
-        model = models.Users
-        fields = ['id', 'username', 'first_name', 'last_name','email', 'phone', 'photo']
 
-    
-class UsersSerializerPost(serializers.ModelSerializer):
+    password = serializers.CharField(write_only = True)
+
     class Meta:
         # Classe responsavel por definir qual model o serializer vai realizar as operações, e quais campos
         # serão usados por ele.
-        
         model = models.Users
         fields = ['id', 'username', 'first_name', 'last_name', 'password', 'email', 'phone', 'photo']
     
