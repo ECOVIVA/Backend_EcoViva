@@ -104,6 +104,9 @@ class UsersTest(APITestCase, UsersMixin ):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(models.Users.objects.count(), 1)
         self.assertEqual(models.Users.objects.first().username, "novouser")
+        self.assertIn('access_token', response.cookies)
+        self.assertIn('refresh_token', response.cookies)
+
 
     # Testando o Metodo Post, caso de sucesso com foto
     def test_users_api_create_with_photo(self):
