@@ -1,8 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.exceptions import InvalidToken
-from rest_framework.permissions import IsAuthenticated
 from . import serializers
 from apps.usuarios.serializers import UsersSerializer
 
@@ -30,7 +28,7 @@ class LoginView(APIView):
         response.set_cookie(
             key='access_token',
             value=access_token,
-            secure=True,
+            secure=False,
             httponly=True,
             samesite='None',
             max_age=300
@@ -39,7 +37,7 @@ class LoginView(APIView):
         response.set_cookie(
             key='refresh_token',
             value=str(refresh),
-            secure=True,
+            secure=False,
             httponly=True,
             samesite='None',
             max_age=86400
