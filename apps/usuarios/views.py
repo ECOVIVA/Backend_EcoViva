@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from . import models, serializers
-from .auth.permissions import IsOwnerOrReadOnly
+from apps.usuarios.auth import permissions as permissions_news
 
 """
     Arquivo responsável pela lógica por trás de cada requisição HTTP, retornando a resposta adequada.
@@ -70,7 +70,7 @@ class UserCreateView(APIView):
 
 
 class UserDetailView(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, username):
         try:
@@ -84,7 +84,7 @@ class UserDetailView(APIView):
             return Response("ERROR", status = status.HTTP_400_BAD_REQUEST)
 
 class UserUpdateView(APIView):
-    permission_classes = [IsOwnerOrReadOnly]
+    permission_classes = [permissions_news.IsUserAuthenticated]
 
     def patch(self, request, username):
         try:
@@ -97,13 +97,13 @@ class UserUpdateView(APIView):
 
             print(serializer.errors)
             return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
-        except Http404:
-            return Response('O usuario não foi encontrado!!!', status = status.HTTP_404_NOT_FOUND)
+        except Http404 as e:
+            return Response({'detail':str(e)}, status = status.HTTP_404_NOT_FOUND)
         except:
             return Response("ERROR", status = status.HTTP_400_BAD_REQUEST)
 
 class UserDeleteView(APIView):
-    permission_classes = [IsOwnerOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated]
 
     def delete(self, request, username):
         try:

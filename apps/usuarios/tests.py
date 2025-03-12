@@ -15,10 +15,11 @@ class UsersMixin:
         username='username',
         password='SenhaMuitoSegura123',
         email='username@email.com',
-        phone = '(11) 11111-1111',
-        photo = None
+        phone='(11) 11111-1111',
+        photo=None,
     ):
-        return models.Users.objects.create_user(
+        # Cria um usuário
+        user = models.Users.objects.create_user(
             first_name=first_name,
             last_name=last_name,
             username=username,
@@ -26,6 +27,25 @@ class UsersMixin:
             email=email,
             phone=phone
         )
+
+        self.authenticate_user(email=email, password=password)
+
+        return user
+
+    def authenticate_user(self, email, password):
+        """
+        Realiza a autenticação do usuário e armazena os cookies (access_token e refresh_token).
+        """
+        url = reverse('login')
+        response = self.client.post(url, {"email": email, "password": password}, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Erro na autenticação: {response.data}")
+
+        # Armazena os cookies no cliente
+        self.client.cookies['access_token'] = response.cookies['access_token'].value
+        self.client.cookies['refresh_token'] = response.cookies['refresh_token'].value
+
+
     
     def make_user_with_serializer(
         self,
@@ -61,7 +81,7 @@ class UsersMixin:
         phone = '(22) 22222-2222',
         photo = None
     ):
-        return models.Users.objects.create_user(
+        return  models.Users.objects.create_user(
             first_name=first_name,
             last_name=last_name,
             username=username,
@@ -85,6 +105,7 @@ class UsersTest(APITestCase, UsersMixin ):
             [status.HTTP_200_OK, status.HTTP_204_NO_CONTENT]
         )
 
+class UsersCreateTest(APITestCase, UsersMixin ):
     # Testando o Metodo Post, caso de sucesso sem foto
     def test_users_api_create(self):
         api_url = reverse('users:user_create')
@@ -239,7 +260,9 @@ class UsersTest(APITestCase, UsersMixin ):
         self.assertIn("photo", response.data)
 
     # Tests de UsersDetailView
-
+class UsersDetailTest(APITestCase, UsersMixin ):
+    def setUp(self):
+        return super().setUp()
     # Testando a API em caso de GET, caso de sucesso
     def test_users_api_object_return_code_200(self):
         self.make_user(username='user')
@@ -264,11 +287,11 @@ class UsersTest(APITestCase, UsersMixin ):
             status.HTTP_404_NOT_FOUND
         )
 
-
+class UsersUpdateTest(APITestCase, UsersMixin ):
     # Testando a api em caso de Update, caso de sucesso
     def test_users_api_object_update(self):
         self.make_user(username='user')
-        api_url = reverse('users:user_detail', args=['user'])
+        api_url = reverse('users:user_update', args=['user'])
         
         payload = {
             "username": "newuser",
@@ -277,6 +300,7 @@ class UsersTest(APITestCase, UsersMixin ):
 
         response = self.client.patch(api_url, payload)
 
+        print(response.data)
         self.assertEqual(
             response.status_code,
             status.HTTP_200_OK
@@ -286,11 +310,11 @@ class UsersTest(APITestCase, UsersMixin ):
     def test_users_api_object_update_username_invalid_duplicate(self):
         self.make_user(username='user')
         self.make_user_for_comparison(username='user2')
-        api_url = reverse('users:user_detail', args=['user'])
+        api_url = reverse('users:user_update', args=['user'])
         
         payload = {
             "username": 'user2',
-            "email": "(22) 22222-2222"
+            "email": "rann@gmail.com"
         }
 
         response = self.client.patch(api_url, payload)
@@ -301,10 +325,11 @@ class UsersTest(APITestCase, UsersMixin ):
         )
         self.assertIn('username', response.data)
 
+class UsersDeleteTest(APITestCase, UsersMixin ):
     # Testando a api em caso de Delete
     def test_users_api_object_delete(self):
         self.make_user(username='user')
-        api_url = reverse('users:user_detail', args=['user'])
+        api_url = reverse('users:user_delete', args=['user'])
         
         response = self.client.delete(api_url)
 
@@ -312,3 +337,39 @@ class UsersTest(APITestCase, UsersMixin ):
             response.status_code,
             status.HTTP_204_NO_CONTENT
         )
+
+class UsersAuthTest(APITestCase):
+    def setUp(self):
+        # Cria um usuário para autenticação
+        self.user = models.Users.objects.create_user(
+            username='testuser',
+            password='SenhaMuitoSegura123',
+            email='test@email.com'
+        )
+
+        # Autentica e armazena os cookies
+        self.authenticate_user()
+
+    def authenticate_user(self):
+        # Rota para obter o JWT
+        url = reverse('login')
+        
+        # Faz login e obtém os tokens
+        response = self.client.post(url, {
+            'email': 'test@email.com',
+            'password': 'SenhaMuitoSegura123'
+        }, format='json')
+        
+        print(response)
+        # Armazena os cookies no cliente
+        self.client.cookies['access_token'] = response.cookies['access_token'].value
+        self.client.cookies['refresh_token'] = response.cookies['refresh_token'].value
+
+    def test_authenticated_request_with_cookies(self):
+        url = reverse('users:user_detail', args=['testuser'])
+
+        # Envia a requisição com os cookies armazenados
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['username'], 'testuser')

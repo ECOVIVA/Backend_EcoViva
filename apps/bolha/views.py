@@ -5,7 +5,7 @@ from rest_framework import status, permissions
 from rest_framework.exceptions import NotFound
 
 from apps.bolha import models, serializers
-from apps.usuarios.auth.permissions import IsOwnerOrReadOnly
+from apps.usuarios.auth.permissions import IsOwnerOrReadOnly, IsOwner
 
 """
     Arquivo responsável pela lógica por trás de cada requisição HTTP, retornando a resposta adequada.
@@ -61,7 +61,7 @@ class CheckInView(APIView):
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
 class CheckInDetailView(APIView):
-    permission_classes = [IsOwnerOrReadOnly]
+    permission_classes = [IsOwner]
 
     def get(self,request, username, checkin_id):
         try:
