@@ -38,5 +38,4 @@ class IsOwner(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         # Garante que o usuário autenticado é o dono da bolha do check-in
-        print(obj)
         return obj.bubble.user == request.user

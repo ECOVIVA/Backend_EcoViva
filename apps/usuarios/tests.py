@@ -90,7 +90,7 @@ class UsersMixin:
             phone=phone
         )
 
-
+# Testes da View 'UsersListView', cujo a ação é listar todos os usuarios!!!
 class UsersTest(APITestCase, UsersMixin ):
 
     # Tests de UsersView
@@ -105,6 +105,7 @@ class UsersTest(APITestCase, UsersMixin ):
             [status.HTTP_200_OK, status.HTTP_204_NO_CONTENT]
         )
 
+# Testes da View 'UsersCreateView', cujo a ação é criar novos usuarios
 class UsersCreateTest(APITestCase, UsersMixin ):
     # Testando o Metodo Post, caso de sucesso sem foto
     def test_users_api_create(self):
@@ -259,7 +260,7 @@ class UsersCreateTest(APITestCase, UsersMixin ):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("photo", response.data)
 
-    # Tests de UsersDetailView
+# Testes da View 'UsersDetailsView', cujo a ação é enviar os dados do usuario
 class UsersDetailTest(APITestCase, UsersMixin ):
     def setUp(self):
         return super().setUp()
@@ -287,6 +288,7 @@ class UsersDetailTest(APITestCase, UsersMixin ):
             status.HTTP_404_NOT_FOUND
         )
 
+# Testes da View 'UsersUpdateView', cujo a ação é atualizar os dados do usuario
 class UsersUpdateTest(APITestCase, UsersMixin ):
     # Testando a api em caso de Update, caso de sucesso
     def test_users_api_object_update(self):
@@ -325,6 +327,8 @@ class UsersUpdateTest(APITestCase, UsersMixin ):
         )
         self.assertIn('username', response.data)
 
+
+# Testes da View 'UsersDeleteView', cujo a ação é excluir os dados do usuario
 class UsersDeleteTest(APITestCase, UsersMixin ):
     # Testando a api em caso de Delete
     def test_users_api_object_delete(self):
@@ -338,38 +342,33 @@ class UsersDeleteTest(APITestCase, UsersMixin ):
             status.HTTP_204_NO_CONTENT
         )
 
-class UsersAuthTest(APITestCase):
+
+# Testes responsaveis, pelo envio de dados do usuario autenticado
+class UserProfileViewTest(APITestCase, UsersMixin):
     def setUp(self):
-        # Cria um usuário para autenticação
-        self.user = models.Users.objects.create_user(
-            username='testuser',
-            password='SenhaMuitoSegura123',
-            email='test@email.com'
-        )
+        self.make_user()
 
-        # Autentica e armazena os cookies
-        self.authenticate_user()
-
-    def authenticate_user(self):
-        # Rota para obter o JWT
-        url = reverse('login')
-        
-        # Faz login e obtém os tokens
-        response = self.client.post(url, {
-            'email': 'test@email.com',
-            'password': 'SenhaMuitoSegura123'
-        }, format='json')
-        
-        print(response)
-        # Armazena os cookies no cliente
-        self.client.cookies['access_token'] = response.cookies['access_token'].value
-        self.client.cookies['refresh_token'] = response.cookies['refresh_token'].value
-
-    def test_authenticated_request_with_cookies(self):
-        url = reverse('users:user_detail', args=['testuser'])
-
-        # Envia a requisição com os cookies armazenados
-        response = self.client.get(url)
-
+    def test_get_user_profile_authenticated(self):
+        # Faz a requisição GET para a view
+        response = self.client.get(reverse('users:user_profile'))
+        print(response.data)
+        # Verifica o status HTTP
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['username'], 'testuser')
+
+        # Verifica os dados retornados
+        self.assertEqual(response.data, {
+            "id": 1,
+            "username": "username",
+            "email": "username@email.com",
+            "first_name": "user",
+            "last_name": "name",
+            "phone": '(11) 11111-1111'
+        })
+
+    def test_get_user_profile_unauthenticated(self):
+        self.client.post(reverse('logout'))
+        # Tenta acessar a view sem autenticação
+        response = self.client.get(reverse('users:user_profile'))
+
+        # Verifica se o acesso é negado
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
