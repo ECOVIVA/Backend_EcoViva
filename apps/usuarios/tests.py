@@ -44,32 +44,6 @@ class UsersMixin:
         # Armazena os cookies no cliente
         self.client.cookies['access_token'] = response.cookies['access_token'].value
         self.client.cookies['refresh_token'] = response.cookies['refresh_token'].value
-
-
-    
-    def make_user_with_serializer(
-        self,
-        first_name='user',
-        last_name='name',
-        username='username',
-        password='SenhaMuitoSegura123',
-        email='username@email.com',
-        phone = '(11) 11111-1111',
-        photo = None
-    ):
-        
-        serializer = serializers.UsersSerializerPost(data ={
-            "first_name": first_name,
-            "last_name": last_name,
-            "username":username,
-            "password":password,
-            "email":email,
-            "phone":phone
-            }
-        )
-
-        if serializer.is_valid():
-            serializer.save()
     
     def make_user_for_comparison(
         self,
