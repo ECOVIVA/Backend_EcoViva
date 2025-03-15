@@ -14,7 +14,6 @@ from apps.usuarios.auth import permissions as permissions_news
     As views desempenham as seguintes funções:
     - Listar todos os usuários (UserListView)
     - Criar novos usuários (UserCreateView)
-    - Obter o perfil do usuário autenticado (UserProfileView)
     - Consultar os detalhes de um usuário específico (UserDetailView)
     - Atualizar informações de um usuário (UserUpdateView)
     - Excluir um usuário (UserDeleteView)
@@ -71,7 +70,7 @@ class UserCreateView(APIView):
                     secure=True,
                     httponly=True,
                     samesite='None',
-                    max_age=300
+                    max_age=15*60
                 )
 
                 # Define o cookie de refresh_token (válido por 24 horas).
@@ -81,7 +80,15 @@ class UserCreateView(APIView):
                     secure=True,
                     httponly=True,
                     samesite='None',
-                    max_age=86400
+                    max_age = 30*24*60*60
+                )
+
+                response.set_cookie(
+                    key='isAuthenticated',
+                    value = True,
+                    secure=True,
+                    httponly=False,
+                    samesite='None',
                 )
 
                 return response
@@ -90,26 +97,7 @@ class UserCreateView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             # Retorna uma mensagem de erro detalhada em caso de falha.
-            print(e)
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-# View responsável por retornar os dados do perfil do usuário autenticado.
-class UserProfileView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get(self, request):
-        user = request.user
-        user_data = {
-            "id": user.id,
-            "username": user.username,
-            "email": user.email,
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "phone": user.phone
-        }
-
-        # Retorna os dados do usuário autenticado.
-        return Response(user_data, status=status.HTTP_200_OK)
 
 # View responsável por retornar os detalhes de um usuário específico, identificado pelo username.
 class UserDetailView(APIView):

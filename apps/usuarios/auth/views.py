@@ -1,3 +1,4 @@
+import json
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -18,9 +19,11 @@ class LoginView(APIView):
         # Gerar os tokens
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
+        user_data = UsersSerializer(user).data
+        user_json = json.dumps(user_data, ensure_ascii=False)
 
         response = Response(
-            {"user": UsersSerializer(user).data, "detail": "Login realizado com sucesso."},
+            {"user": user_data, "detail": "Login realizado com sucesso."},
             status=status.HTTP_200_OK
         )
 
@@ -31,7 +34,7 @@ class LoginView(APIView):
             secure=False,
             httponly=True,
             samesite='None',
-            max_age=300
+            max_age= 15*60
         )
 
         response.set_cookie(
@@ -40,7 +43,15 @@ class LoginView(APIView):
             secure=False,
             httponly=True,
             samesite='None',
-            max_age=86400
+            max_age = 30*24*60*60
+        )
+
+        response.set_cookie(
+            key='isAuthenticated',
+            value = True,
+            secure=True,
+            httponly=False,
+            samesite='None',
         )
 
         return response
