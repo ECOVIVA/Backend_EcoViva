@@ -16,5 +16,23 @@ class PostsSerializer(serializers.ModelSerializer):
         # Classe responsavel por definir qual model o serializer vai realizar as operações, e quais campos
         # serão usados por ele.
         
-        model = models.Users
+        model = models.Post
+        fields = '__all__'
+
+class ThreadsSerializer(serializers.ModelSerializer):
+    class Meta:
+
+        # Classe responsavel por definir qual model o serializer vai realizar as operações, e quais campos
+        # serão usados por ele.
+        
+        model = models.Thread
+        fields = '__all__'
+
+class TagsSerializer(serializers.ModelSerializer):
+    class Meta:
+
+        # Classe responsavel por definir qual model o serializer vai realizar as operações, e quais campos
+        # serão usados por ele.
+        
+        model = models.Tags
         fields = '__all__'
