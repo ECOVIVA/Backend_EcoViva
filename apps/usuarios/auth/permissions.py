@@ -31,7 +31,7 @@ class IsOwnerOrReadOnly(BasePermission):
         # Verifica se o usuário é o dono do objeto
         return obj.bubble.user == request.user
     
-class IsOwner(BasePermission):
+class IsBubbleOwner(BasePermission):
     """
     Permite acesso apenas aos donos da bolha relacionada ao CheckIn.
     """
@@ -39,3 +39,12 @@ class IsOwner(BasePermission):
     def has_object_permission(self, request, view, obj):
         # Garante que o usuário autenticado é o dono da bolha do check-in
         return obj.bubble.user == request.user
+    
+class IsPostOwner(BasePermission):
+    """
+    Permite acesso apenas aos donos da bolha relacionada ao CheckIn.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        # Garante que o usuário autenticado é o dono da bolha do check-i
+        return obj.author.user == request.user

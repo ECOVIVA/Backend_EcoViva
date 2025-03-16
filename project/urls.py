@@ -19,7 +19,7 @@ urlpatterns = [
     # 
     # Cada aplicação tem suas próprias rotas, organizadas aqui.
 
-    path('api/posts/', include("apps.posts.urls")),
+    path('api/forum/', include("apps.forum.urls")),
     path('api/users/', include("apps.usuarios.urls")),
     path('api/login/', LoginView.as_view(), name="login"),
     path('api/logout/', LogoutView.as_view(), name="logout"),

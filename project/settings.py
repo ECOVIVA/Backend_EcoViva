@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     'corsheaders',
     'apps.bolha',
-    'apps.posts',
+    'apps.forum',
     'apps.usuarios',
 ]
 

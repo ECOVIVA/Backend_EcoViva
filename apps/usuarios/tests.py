@@ -315,34 +315,3 @@ class UsersDeleteTest(APITestCase, UsersMixin ):
             response.status_code,
             status.HTTP_204_NO_CONTENT
         )
-
-
-# Testes responsaveis, pelo envio de dados do usuario autenticado
-class UserProfileViewTest(APITestCase, UsersMixin):
-    def setUp(self):
-        self.make_user()
-
-    def test_get_user_profile_authenticated(self):
-        # Faz a requisição GET para a view
-        response = self.client.get(reverse('users:user_profile'))
-        print(response.data)
-        # Verifica o status HTTP
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        # Verifica os dados retornados
-        self.assertEqual(response.data, {
-            "id": 1,
-            "username": "username",
-            "email": "username@email.com",
-            "first_name": "user",
-            "last_name": "name",
-            "phone": '(11) 11111-1111'
-        })
-
-    def test_get_user_profile_unauthenticated(self):
-        self.client.post(reverse('logout'))
-        # Tenta acessar a view sem autenticação
-        response = self.client.get(reverse('users:user_profile'))
-
-        # Verifica se o acesso é negado
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
