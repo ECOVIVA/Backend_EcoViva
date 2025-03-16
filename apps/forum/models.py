@@ -1,6 +1,9 @@
 from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
+from django.core.validators import FileExtensionValidator
+
+from utils.image import validate_image_dimensions,validate_image_size
 
 from apps.users.models import Users
 
@@ -11,6 +14,7 @@ class Tags(models.Model):
         return self.name
 
 class Thread(models.Model):
+    cover = models.ImageField(upload_to = "threads_cover",  validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png']),validate_image_size, validate_image_dimensions,], null=True, blank=True)
     title = models.CharField(max_length=255)
     slug = models.SlugField(unique=True, blank=False)
     content = models.TextField()
