@@ -5,7 +5,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from io import BytesIO
 from PIL import Image
 
-from apps.usuarios import models,serializers
+from apps.users import models
 
 class UsersMixin:
     def make_user(
@@ -55,7 +55,7 @@ class UsersMixin:
         phone = '(22) 22222-2222',
         photo = None
     ):
-        return  models.Users.objects.create_user(
+        user = models.Users.objects.create_user(
             first_name=first_name,
             last_name=last_name,
             username=username,
@@ -63,6 +63,10 @@ class UsersMixin:
             email=email,
             phone=phone
         )
+    
+        self.authenticate_user(email=email, password=password)
+
+        return user
 
 # Testes da View 'UsersListView', cujo a ação é listar todos os usuarios!!!
 class UsersTest(APITestCase, UsersMixin ):

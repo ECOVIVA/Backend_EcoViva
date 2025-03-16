@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from . import models, serializers
-from apps.usuarios.auth import permissions as permissions_news
+from apps.users.auth import permissions as permissions_news
 
 """
     Este arquivo contém as views relacionadas aos usuários, responsáveis por processar as requisições

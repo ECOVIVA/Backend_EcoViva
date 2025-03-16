@@ -3,7 +3,7 @@ from rest_framework.test import APITestCase
 from django.urls import reverse
 from django.utils.text import slugify
 from apps.forum.models import Thread, Post
-from apps.usuarios.tests import UsersMixin
+from apps.users.tests import UsersMixin
 
 class ThreadTests(APITestCase,UsersMixin ):
     def setUp(self):

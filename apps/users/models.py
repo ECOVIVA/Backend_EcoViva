@@ -43,7 +43,7 @@ class Users(AbstractUser):
 
     # Classe Meta, responsável por definir como o model será chamado na area administrativa
     class Meta:
-        app_label = 'usuarios'
+        app_label = 'users'
         verbose_name = "User"
         verbose_name_plural = "Users"
 

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import password_validation
 import re
-from apps.bolha.serializers import BubbleSerializer
+from apps.bubble.serializers import BubbleSerializer
 from . import models
 
 """
@@ -60,8 +60,5 @@ class UsersSerializer(serializers.ModelSerializer):
 
         if bubble_serializer.is_valid():
             bubble_serializer.save()
-            print("Bolha criada com sucesso:", bubble_serializer.data)
-        else:
-            print("Erro ao criar a bolha:", bubble_serializer.errors)
-
+            
         return user

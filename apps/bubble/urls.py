@@ -19,5 +19,6 @@ app_name = 'bubble'
 urlpatterns = [
     path('<str:username>/', views.BubbleView.as_view(), name="bubble"),
     path('<str:username>/check-in/', views.CheckInView.as_view(), name="check_in"),
+    path('<str:username>/check-in/create/', views.CheckInCreateView.as_view(), name="check_in_create"),
     path('<str:username>/check-in/<int:checkin_id>/', views.CheckInDetailView.as_view(), name="check_in_detail"),
 ]

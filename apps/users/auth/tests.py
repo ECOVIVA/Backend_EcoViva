@@ -2,7 +2,7 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 from django.urls import reverse
 from rest_framework_simplejwt.tokens import RefreshToken
-from apps.usuarios.tests import UsersMixin
+from apps.users.tests import UsersMixin
 
 class AuthTest(APITestCase, UsersMixin):
 

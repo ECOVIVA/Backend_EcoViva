@@ -22,5 +22,5 @@ urlpatterns = [
     path('detail/<str:username>/', views.UserDetailView.as_view(), name="user_detail"),
     path('update/<str:username>/', views.UserUpdateView.as_view(), name="user_update"),
     path('delete/<str:username>/', views.UserDeleteView.as_view(), name="user_delete"),
-    path('bubble/', include('apps.bolha.urls')),
+    path('bubble/', include('apps.bubble.urls')),
 ]

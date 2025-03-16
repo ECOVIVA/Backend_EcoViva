@@ -2,7 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
 
-from apps.usuarios.models import Users
+from apps.users.models import Users
 
 class Tags(models.Model):
     name = models.CharField(max_length=100, unique=True)

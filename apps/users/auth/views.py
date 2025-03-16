@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from . import serializers
-from apps.usuarios.serializers import UsersSerializer
+from apps.users.serializers import UsersSerializer
 
 from rest_framework import status
 

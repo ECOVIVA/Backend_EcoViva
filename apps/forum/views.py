@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 
-from apps.usuarios.auth.permissions import IsPostOwner
+from apps.users.auth.permissions import IsPostOwner
 from . import models, serializers
 
 """

@@ -4,8 +4,8 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from rest_framework.exceptions import NotFound
 
-from apps.bolha import models, serializers
-from apps.usuarios.auth.permissions import IsOwnerOrReadOnly, IsBubbleOwner
+from apps.bubble import models, serializers
+from apps.users.auth.permissions import IsOwnerOrReadOnly, IsBubbleOwner
 
 """
     Arquivo responsável pela lógica por trás de cada requisição HTTP, retornando a resposta adequada.
@@ -44,6 +44,7 @@ class CheckInView(APIView):
         except NotFound:
             return Response('Não há check-ins registrados nessa bolha.', status = status.HTTP_404_NOT_FOUND)
 
+class CheckInCreateView(APIView):
     def post(self, request, username):
         try:
             bubble = get_object_or_404(models.Bubble, user__username = username)
@@ -55,7 +56,26 @@ class CheckInView(APIView):
         serializer = serializers.CheckInSerializer(data = data)
 
         if serializer.is_valid():
-            serializer.save()
+            checkin = serializer.save()
+            bubble = checkin.bubble
+            difficulty = bubble.rank.difficulty
+
+            if difficulty:
+                # Aumenta o progresso da bolha com base na dificuldade
+                bubble.progress += difficulty.points_for_activity
+                bubble.save()
+
+                # Atualiza o Rank da Bubble se atingir o próximo nível
+                next_rank = models.Rank.objects.filter(points__lte=bubble.progress).order_by('-points').first()
+                if next_rank and next_rank != bubble.rank:
+                    bubble.rank = next_rank
+                    bubble.save()
+
+                    return Response({
+                            "message": f"Parabéns! Você subiu de rank para {next_rank.name}. Seu novo rank é {next_rank.name}.",
+                            "new_rank": next_rank.name
+                        }, status=status.HTTP_200_OK)
+                
             return Response("Check-in criado com sucesso!!", status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
@@ -76,22 +96,3 @@ class CheckInDetailView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except NotFound:
             return Response('Este Check-In não existe', status = status.HTTP_404_NOT_FOUND)
-
-    def patch(self, request, username, checkin_id):
-        try:
-            bubble = get_object_or_404(models.Bubble, user__username = username)
-        except NotFound:
-            return Response('A Bolha não foi encontrada', status = status.HTTP_404_NOT_FOUND)
-        
-        try:
-            check_in = get_object_or_404(models.CheckIn, bubble = bubble.pk, id = checkin_id)
-        except NotFound:
-            return Response('Este Check-In não existe', status = status.HTTP_404_NOT_FOUND)
-        
-        data = request.data
-        serializer = serializers.CheckInSerializer(check_in, data = data, partial = True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response("Check-in atualizado com sucesso!", status=status.HTTP_200_OK)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
