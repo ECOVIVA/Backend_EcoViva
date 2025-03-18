@@ -29,7 +29,7 @@ class ThreadsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Thread
-        fields = ['id', 'title', 'content', 'tags', 'tags_data', 'author', 'slug', 'created_at', 'updated_at']
+        fields = ['id','cover', 'title', 'content', 'tags', 'tags_data', 'author', 'slug', 'created_at', 'updated_at']
         read_only_fields = ['slug', 'tags_data', 'created_at', 'updated_at']
 
     def validate_tags(self, value):

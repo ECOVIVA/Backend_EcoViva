@@ -1,7 +1,9 @@
+import os
 from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
 from django.core.validators import FileExtensionValidator
+from django.dispatch import receiver
 
 from utils.image import validate_image_dimensions,validate_image_size
 
@@ -39,6 +41,28 @@ class Thread(models.Model):
 
     def __str__(self):
         return self.title
+    
+@receiver(models.signals.post_delete, sender=Thread)
+def deletar_imagem_apos_excluir(sender, instance, **kwargs):
+    if instance.cover:
+        if os.path.isfile(instance.cover.path):
+            os.remove(instance.cover.path)
+
+@receiver(models.signals.pre_save, sender=Thread)
+def delete_old_image(sender, instance, **kwargs):
+    """ Deleta a imagem antiga ao atualizar o campo de imagem. """
+    if not instance.pk:  # Se for um novo objeto, não faz nada
+        return
+
+    try:
+        old_instance = sender.objects.get(pk=instance.pk)  # Obtém a versão antiga do objeto
+    except sender.DoesNotExist:
+        return
+
+    if old_instance.cover and old_instance.cover != instance.cover:  
+        if os.path.isfile(old_instance.cover.path):  
+            os.remove(old_instance.cover.path)  # Remove a imagem antiga
+
 
 class Post(models.Model):
     thread = models.ForeignKey(Thread, on_delete=models.CASCADE, related_name='posts')

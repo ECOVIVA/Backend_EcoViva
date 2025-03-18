@@ -11,7 +11,7 @@ class ThreadAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (None, {
-            'fields': ('title', 'content', 'tags', 'author', 'slug')  # Adiciona o campo slug no formulário
+            'fields': ('title', 'content', 'tags', 'author', 'slug', 'cover')  # Adiciona o campo slug no formulário
         }),
         ('Datas', {
             'fields': ('created_at',),

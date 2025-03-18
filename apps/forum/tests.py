@@ -2,6 +2,11 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 from django.urls import reverse
 from django.utils.text import slugify
+
+from django.core.files.uploadedfile import SimpleUploadedFile
+from io import BytesIO
+from PIL import Image
+
 from apps.forum.models import Thread, Post
 from apps.users.tests import UsersMixin
 
@@ -25,6 +30,18 @@ class ThreadTests(APITestCase,UsersMixin ):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
 
+    def test_create_thread_success(self):
+        url = reverse('forum:create_thread')
+        data = {
+            'title': 'New Thread',
+            'content': 'Content for new thread',
+            'author': self.user.id,
+        }
+
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.json(), 'Thread criada com sucesso!!!')
+
     def test_create_thread_success_with_tags(self):
         url = reverse('forum:create_thread')
         data = {
@@ -36,13 +53,37 @@ class ThreadTests(APITestCase,UsersMixin ):
 
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.json(), 'Thread criada com sucesso!!!')
 
         new_thread = Thread.objects.get(title='New Thread')  # Busca a thread recém-criada
         tag_names = set(new_thread.tags.values_list("name", flat=True))
         self.assertEqual(tag_names, {'django', 'python', 'api'})
+
+    def test_create_thread_success_with_cover(self):
+        url = reverse('forum:create_thread')
+
+        image = Image.new('RGB', (100, 100), color='red')
+        image_file = BytesIO()
+        image.save(image_file, format='JPEG')
+        image_file.name = 'test_cover.jpg'
+        image_file.seek(0) 
+
+        cover = SimpleUploadedFile(image_file.name, image_file.read(), content_type="image/jpeg")
+
+        data = {
+            'title': 'New Thread',
+            'content': 'Content for new thread',
+            'author': self.user.id,
+            'cover': cover
+        }
+
+        response = self.client.post(url, data, format='multipart')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        thread = Thread.objects.get(title = data['title'])
+
+        thread.cover.delete()        
     
-    def test_create_thread_fail_for_blank(self):
+    def test_create_thread_fail_for_title_blank(self):
         url = reverse('forum:create_thread')
 
         data = {
@@ -87,6 +128,52 @@ class ThreadTests(APITestCase,UsersMixin ):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json(), {'tags': ['Necessário uma lista de itens, mas recebeu tipo "str".']})
+
+    def test_create_thread_fail_for_cover_size(self):
+        url = reverse('forum:create_thread')
+
+        image = Image.new('RGB', (2000, 2000), color='red')
+        image_file = BytesIO()
+        image.save(image_file, format='JPEG')
+        image_file.name = 'test_cover.jpg'
+        image_file.seek(0) 
+
+        cover = SimpleUploadedFile(image_file.name, image_file.read(), content_type="image/jpeg")
+
+        data = {
+            'title': 'New Thread',
+            'content': 'Content for new thread',
+            'author': self.user.id,
+            'cover': cover
+        }
+
+        response = self.client.post(url, data, format='multipart')
+        print(response.json())
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()['cover'][0], 'As dimensões da imagem não podem exceder 1200x1200 pixels.')
+
+    def test_create_thread_fail_for_cover_type(self):
+        url = reverse('forum:create_thread')
+
+        image = Image.new('RGB', (100, 100), color='red')
+        image_file = BytesIO()
+        image.save(image_file, format='GIF')
+        image_file.name = 'test_cover.gif'
+        image_file.seek(0) 
+
+        cover = SimpleUploadedFile(image_file.name, image_file.read(), content_type="image/gif")
+
+        data = {
+            'title': 'New Thread',
+            'content': 'Content for new thread',
+            'author': self.user.id,
+            'cover': cover
+        }
+
+        response = self.client.post(url, data, format='multipart')
+        print(response.json())
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()['cover'][0], 'A extensão de arquivo “gif” não é permitida. As extensões válidas são: jpg, jpeg, png .')
 
     def test_thread_update_success(self):
         url = reverse('forum:update_thread', args=[self.thread.slug])

@@ -9,7 +9,7 @@ class UsersAdmin(admin.ModelAdmin):
     
     fieldsets = (
         (None, {"fields": ("username", "email", "password")}),
-        ("Informações Pessoais", {"fields": ("first_name", "last_name", "phone")}),
+        ("Informações Pessoais", {"fields": ("first_name", "last_name", "phone", "photo")}),
         ("Status", {"fields": ("is_active", "is_staff", "is_superuser")}),
     )
 

@@ -1,11 +1,15 @@
+import os
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import FileExtensionValidator
+from django.dispatch import receiver
+from django.contrib.auth.models import BaseUserManager
+from django.db import models
 
 from utils.image import validate_image_dimensions,validate_image_size
 
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
-from django.db import models
+
 
 class UsersManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -48,7 +52,7 @@ class Users(AbstractUser):
         verbose_name_plural = "Users"
 
     email = models.EmailField(unique=True, blank = False, null=False)
-    bio = models.TextField(max_length = 256)
+    bio = models.TextField(max_length = 256, null = True, default = None)
     phone = models.CharField(max_length=15, blank=False, null=False)
     photo = models.ImageField(upload_to = "users_photos",  validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png']),validate_image_size, validate_image_dimensions,], null=True, blank=True)
 
@@ -64,4 +68,23 @@ class Users(AbstractUser):
     def __str__(self):
         return f"User {self.username}"
     
-    
+@receiver(models.signals.post_delete, sender=Users)
+def deletar_imagem_apos_excluir(sender, instance, **kwargs):
+    if instance.photo:
+        if os.path.isfile(instance.photo.path):
+            os.remove(instance.photo.path)
+
+@receiver(models.signals.pre_save, sender=Users)
+def delete_old_image(sender, instance, **kwargs):
+    """ Deleta a imagem antiga ao atualizar o campo de imagem. """
+    if not instance.pk:  # Se for um novo objeto, não faz nada
+        return
+
+    try:
+        old_instance = sender.objects.get(pk=instance.pk)  # Obtém a versão antiga do objeto
+    except sender.DoesNotExist:
+        return
+
+    if old_instance.photo and old_instance.photo != instance.photo:  
+        if os.path.isfile(old_instance.photo.path):  
+            os.remove(old_instance.photo.path) 
