@@ -61,7 +61,7 @@ def delete_old_image(sender, instance, **kwargs):
 
     if old_instance.cover and old_instance.cover != instance.cover:  
         if os.path.isfile(old_instance.cover.path):  
-            os.remove(old_instance.cover.path)  # Remove a imagem antiga
+            os.remove(old_instance.cover.path) 
 
 
 class Post(models.Model):

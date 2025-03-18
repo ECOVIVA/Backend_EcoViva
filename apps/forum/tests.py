@@ -148,7 +148,6 @@ class ThreadTests(APITestCase,UsersMixin ):
         }
 
         response = self.client.post(url, data, format='multipart')
-        print(response.json())
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()['cover'][0], 'As dimensões da imagem não podem exceder 1200x1200 pixels.')
 

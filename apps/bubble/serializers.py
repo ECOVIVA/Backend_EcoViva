@@ -12,13 +12,21 @@ from . import models
     com o Banco de Dados.
 
 """
+class DifficultySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Difficulty
+        fields = '__all__'
+
+class RankSerializer(serializers.ModelSerializer):
+    difficulty = DifficultySerializer()
+    class Meta:
+        model = models.Rank
+        fields = '__all__'
 
 class BubbleSerializer(serializers.ModelSerializer):
-    class Meta:
+    rank = RankSerializer()
 
-        # Classe responsavel por definir qual model o serializer vai realizar as operações, e quais campos
-        # serão usados por ele.
-        
+    class Meta:
         model = models.Bubble
         fields = '__all__'
         read_only_fields = ['rank']

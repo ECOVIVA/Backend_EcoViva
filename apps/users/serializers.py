@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import password_validation
 import re
-from apps.bubble.serializers import BubbleSerializer
+from apps.bubble.models import Bubble
 from . import models
 
 """
@@ -55,10 +55,9 @@ class UsersSerializer(serializers.ModelSerializer):
         user.save()
 
         # Criação automática da bolha para o novo usuário
-        bubble_data = {'user': user.id}
-        bubble_serializer = BubbleSerializer(data=bubble_data)
+        bubble_data = {'user': user}
+        bubble_model = Bubble.objects.create(**bubble_data)
 
-        if bubble_serializer.is_valid():
-            bubble_serializer.save()
+        bubble_model.save()
             
         return user
