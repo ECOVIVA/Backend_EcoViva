@@ -1,4 +1,5 @@
 from django.shortcuts import get_list_or_404, get_object_or_404
+from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
@@ -15,8 +16,8 @@ from apps.users.auth.permissions import IsOwnerOrReadOnly, IsBubbleOwner
     as respostas no formato apropriado, como JSON, para as requisições da API.
 """
 
-class BubbleView(APIView):
-    permission_classes = [permissions.AllowAny]
+class BubbleUsersView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
     def get(self, request, username):
         try:
             bubble = get_object_or_404(models.Bubble, user__username = username)
@@ -25,14 +26,26 @@ class BubbleView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except NotFound:
             return Response('A Bolha não foi encontrada', status = status.HTTP_404_NOT_FOUND)
+        
+class BubbleProfileView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    def get(self, request):
+        try:
+            print(request.user)
+            bubble = get_object_or_404(models.Bubble, user = request.user.id)
+            serializer = serializers.BubbleSerializer(bubble)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Http404:
+            return Response('A Bolha não foi encontrada', status = status.HTTP_404_NOT_FOUND)
 
 
 class CheckInView(APIView):
     permission_classes = [IsOwnerOrReadOnly]
 
-    def get(self, request,username):
+    def get(self, request):
         try:
-            bubble = get_object_or_404(models.Bubble, user__username = username)
+            bubble = get_object_or_404(models.Bubble, user = request.user)
         except NotFound:
             return Response('A Bolha não foi encontrada', status = status.HTTP_404_NOT_FOUND)
         
@@ -45,10 +58,12 @@ class CheckInView(APIView):
             return Response('Não há check-ins registrados nessa bolha.', status = status.HTTP_404_NOT_FOUND)
 
 class CheckInCreateView(APIView):
-    def post(self, request, username):
+    permission_classes = [IsBubbleOwner]
+    def post(self, request):
         try:
-            bubble = get_object_or_404(models.Bubble, user__username = username)
-        except NotFound:
+            print(request.user)
+            bubble = get_object_or_404(models.Bubble, user = request.user.id)
+        except Http404:
             return Response('A Bolha não foi encontrada', status = status.HTTP_404_NOT_FOUND)
         
         data = request.data
@@ -83,9 +98,9 @@ class CheckInCreateView(APIView):
 class CheckInDetailView(APIView):
     permission_classes = [IsBubbleOwner]
 
-    def get(self,request, username, checkin_id):
+    def get(self,request, checkin_id):
         try:
-            bubble = get_object_or_404(models.Bubble, user__username = username)
+            bubble = get_object_or_404(models.Bubble, user = request.user)
         except NotFound:
             return Response('A Bolha não foi encontrada', status = status.HTTP_404_NOT_FOUND)
         

@@ -17,8 +17,9 @@ from . import views
 app_name = 'bubble'
 
 urlpatterns = [
-    path('<str:username>/', views.BubbleView.as_view(), name="bubble"),
-    path('<str:username>/check-in/', views.CheckInView.as_view(), name="check_in"),
-    path('<str:username>/check-in/create/', views.CheckInCreateView.as_view(), name="check_in_create"),
-    path('<str:username>/check-in/<int:checkin_id>/', views.CheckInDetailView.as_view(), name="check_in_detail"),
+    path(' profile/', views.BubbleProfileView.as_view(), name="bubble_profile"),
+    path('<str:username>/', views.BubbleUsersView.as_view(), name="bubble"),
+    path('check-in/', views.CheckInView.as_view(), name="check_in"),
+    path('check-in/create/', views.CheckInCreateView.as_view(), name="check_in_create"),
+    path('check-in/<int:checkin_id>/', views.CheckInDetailView.as_view(), name="check_in_detail"),
 ]

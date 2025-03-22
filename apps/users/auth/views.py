@@ -2,12 +2,18 @@ import json
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework import permissions
+from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework.exceptions import AuthenticationFailed
+
 from . import serializers
 from apps.users.serializers import UsersSerializer
 
 from rest_framework import status
 
 class LoginView(APIView):
+    permission_classes = [permissions.AllowAny]
+
     def post(self, request):
         serializer = serializers.LoginUserSerializer(data=request.data)
 
@@ -31,7 +37,7 @@ class LoginView(APIView):
         response.set_cookie(
             key='access_token',
             value=access_token,
-            secure=False,
+            secure=True,
             httponly=True,
             samesite='None',
             max_age= 15*60
@@ -40,7 +46,7 @@ class LoginView(APIView):
         response.set_cookie(
             key='refresh_token',
             value=str(refresh),
-            secure=False,
+            secure=True,
             httponly=True,
             samesite='None',
             max_age = 30*24*60*60
@@ -91,3 +97,18 @@ class RefreshView(APIView):
 
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+        
+
+class VerifyView(APIView):
+    def get(self, request):
+        access_token = request.COOKIES.get('access_token')
+
+        if not access_token:
+            return Response({"detail": "Token de acesso não encontrado."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            # Verifica se o token é válido
+            token = AccessToken(access_token)
+            return Response({"detail": "Token válido."}, status=status.HTTP_200_OK)
+        except AuthenticationFailed as e:
+            return Response({"detail": f"Token inválido: {str(e)}"}, status=status.HTTP_401_UNAUTHORIZED)

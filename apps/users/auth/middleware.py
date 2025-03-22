@@ -1,6 +1,9 @@
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 
+from django.shortcuts import redirect
+from django.urls import reverse
+
 class CookieJWTAuthentication(JWTAuthentication):
     def authenticate(self, request):
         token = request.COOKIES.get("access_token")
