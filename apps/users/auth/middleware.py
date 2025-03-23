@@ -1,11 +1,12 @@
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.exceptions import AuthenticationFailed
-
-from django.shortcuts import redirect
-from django.urls import reverse
+from rest_framework.permissions import AllowAny
 
 class CookieJWTAuthentication(JWTAuthentication):
     def authenticate(self, request):
+        if any(isinstance(perm(), AllowAny) for perm in request.resolver_match.func.view_class.permission_classes):
+            return None
+
         token = request.COOKIES.get("access_token")
 
         if not token:

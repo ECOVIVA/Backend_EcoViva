@@ -23,29 +23,16 @@ class RankSerializer(serializers.ModelSerializer):
         model = models.Rank
         fields = '__all__'
 
-class BubbleSerializer(serializers.ModelSerializer):
-    rank = RankSerializer()
-
-    class Meta:
-        model = models.Bubble
-        fields = '__all__'
-        read_only_fields = ['rank']
-
 class CheckInSerializer(serializers.ModelSerializer):
     class Meta:
-
-        # Classe responsavel por definir qual model o serializer vai realizar as operações, e quais campos
-        # serão usados por ele.
-        
         model = models.CheckIn
         fields = '__all__'
-        read_only_fields = ['created_at']
+        read_only_fields = ['created_at', 'xp_earned']
 
     def validate(self, data):
         """ Valida se o último Check-In foi feito há menos de 24 horas. """
         bubble = data.get('bubble')  # Obtém a bolha do novo check-in
         ultimo_checkin = models.CheckIn.objects.filter(bubble=bubble).order_by('-created_at').first()
-        print('Check-In', ultimo_checkin)
 
         if ultimo_checkin:
             tempo_desde_ultimo = timezone.now() - ultimo_checkin.created_at
@@ -53,3 +40,24 @@ class CheckInSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Um novo Check-in só pode ser feito após 24 horas.")
 
         return data
+    
+    def create(self, validated_data):
+        """ Atribui XP automaticamente ao criar um check-in. """
+        bubble = validated_data.get('bubble')
+        # Atribui o XP antes de criar o objeto
+        validated_data['xp_earned'] = bubble.rank.difficulty.points_for_activity
+        return super().create(validated_data)
+    
+class BubbleSerializer(serializers.ModelSerializer):
+    rank = RankSerializer()
+    check_ins = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.Bubble
+        fields = 'user', 'progress', 'rank', 'check_ins'
+        read_only_fields = ['rank','check_ins']
+
+    def get_check_ins(self, obj):
+        """ Retorna todas as respostas de um post """
+        check_ins = models.CheckIn.objects.filter(bubble=obj)
+        return CheckInSerializer(check_ins, many=True).data

@@ -69,6 +69,7 @@ class CheckIn(models.Model):
     bubble = models.ForeignKey(Bubble, on_delete=models.CASCADE)
     description = models.CharField(max_length=256, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
+    xp_earned = models.PositiveIntegerField(blank=True)
     
     def __str__(self):
         return f"Check-In {self.pk}"

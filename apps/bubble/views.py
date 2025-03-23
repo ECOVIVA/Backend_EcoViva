@@ -28,7 +28,7 @@ class BubbleUsersView(APIView):
             return Response('A Bolha não foi encontrada', status = status.HTTP_404_NOT_FOUND)
         
 class BubbleProfileView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsBubbleOwner]
     def get(self, request):
         try:
             print(request.user)
@@ -45,7 +45,7 @@ class CheckInView(APIView):
 
     def get(self, request):
         try:
-            bubble = get_object_or_404(models.Bubble, user = request.user)
+            bubble = get_object_or_404(models.Bubble, user = request.user.id)
         except NotFound:
             return Response('A Bolha não foi encontrada', status = status.HTTP_404_NOT_FOUND)
         
@@ -84,6 +84,7 @@ class CheckInCreateView(APIView):
                 next_rank = models.Rank.objects.filter(points__lte=bubble.progress).order_by('-points').first()
                 if next_rank and next_rank != bubble.rank:
                     bubble.rank = next_rank
+                    bubble.progress = 0
                     bubble.save()
 
                     return Response({

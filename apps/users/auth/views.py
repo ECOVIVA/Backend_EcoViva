@@ -66,7 +66,6 @@ class LogoutView(APIView):
     def post(self, request):
         response = Response({"detail": "Logout realizado com sucesso."}, status=status.HTTP_200_OK)
 
-        # Limpa os cookies
         response.delete_cookie("access_token")
         response.delete_cookie("refresh_token")
 
@@ -96,7 +95,10 @@ class RefreshView(APIView):
             return response
 
         except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+            response = Response({"detail": "Erro ao atualizar o token."}, status=status.HTTP_401_UNAUTHORIZED)
+            response.delete_cookie("access_token")
+            response.delete_cookie("refresh_token")
+            return response
         
 
 class VerifyView(APIView):
@@ -107,7 +109,6 @@ class VerifyView(APIView):
             return Response({"detail": "Token de acesso não encontrado."}, status=status.HTTP_401_UNAUTHORIZED)
 
         try:
-            # Verifica se o token é válido
             token = AccessToken(access_token)
             return Response({"detail": "Token válido."}, status=status.HTTP_200_OK)
         except AuthenticationFailed as e:
