@@ -2,8 +2,8 @@ from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
 from apps.users.tests import UsersMixin
-from apps.users.models import Users  # ou o caminho correto para o seu model de usuários
-from apps.bubble.models import Bubble, CheckIn
+from apps.users.models import Users  
+from apps.bubble.models import Bubble
 
 """
     Area Responsável por testar as funcionalidades da API, detectar erros e indentifica-los, de modo

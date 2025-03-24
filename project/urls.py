@@ -21,6 +21,7 @@ urlpatterns = [
 
     path('api/forum/', include("apps.forum.urls")),
     path('api/users/', include("apps.users.urls")),
+    path('api/users/', include("apps.study.urls")),
     path('api/login/', LoginView.as_view(), name="login"),
     path('api/logout/', LogoutView.as_view(), name="logout"),
     path('api/refresh/', RefreshView.as_view(), name="refresh"),

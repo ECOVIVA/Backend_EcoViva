@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'apps.bubble',
     'apps.forum',
+    'apps.study',
     'apps.users',
 ]
 
