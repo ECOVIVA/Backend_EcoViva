@@ -2,19 +2,22 @@ from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
 from apps.users.tests import UsersMixin
-from apps.study.models import LessonCompletion, Lesson  # ou o caminho correto para o seu model de usuários
+from apps.study.models import LessonCompletion, Lesson, Achievement, AchievementRule, UserAchievement
 from apps.bubble.models import Bubble, CheckIn
+
 
 class TestLessions(APITestCase, UsersMixin):
     def setUp(self):
         self.user = self.make_user()
-        self.client.force_authenticate(user=self.user)  # Autenticando usuário para requisições
+        self.client.force_authenticate(user=self.user)  
 
-        # Criando uma lição de teste
         self.lesson = Lesson.objects.create(title="Lição Teste")
+        self.lesson2 = Lesson.objects.create(title="Lição Teste 2")
 
-        # Criando um registro de conclusão de lição para esse usuário
         self.lesson_completion = LessonCompletion.objects.create(user=self.user, lesson=self.lesson)
+
+        self.achievement = Achievement.objects.create(name = "Conquista")
+        self.achievement_rules = AchievementRule.objects.create(achievement = self.achievement, required_lessons = 1)
 
     def test_get_lesson_completions_success(self):
         """Testa se retorna corretamente as lições concluídas do usuário autenticado"""
@@ -51,6 +54,20 @@ class TestLessions(APITestCase, UsersMixin):
 
         # Verificando se foi criado no banco de dados
         self.assertEqual(LessonCompletion.objects.count(), 1)
+        self.assertEqual(UserAchievement.objects.filter(user=self.user).count(), 1)
+
+    def test_post_lesson_for_test_duplicate_archivement(self):
+        """Testa a criação de um novo registro de lição concluída"""
+        url = reverse("study:lesson_complete_create")  # Ajuste conforme sua URL
+
+        self.lesson_completion.delete() 
+        payload1 = {"lesson": self.lesson.pk}
+        payload2 = {"lesson": self.lesson2.pk}
+
+        response1 = self.client.post(url, data=payload1, format="json")
+        response2 = self.client.post(url, data=payload2, format="json")
+
+        self.assertEqual(UserAchievement.objects.filter(user=self.user).count(), 1)
 
     def test_post_lesson_completion_without_lesson(self):
         """Testa a tentativa de criar um registro sem informar a lição"""
@@ -73,3 +90,10 @@ class TestLessions(APITestCase, UsersMixin):
         response2 = self.client.post(url, data=payload, format="json")  # Tentativa duplicada
 
         self.assertEqual(response2.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_get_achivements_list(self):
+        url = reverse("study:achivements_user")
+
+        response = self.client.get(url, format="json")  # Tentativa duplicada
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

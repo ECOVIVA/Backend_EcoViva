@@ -37,3 +37,12 @@ class LessonCompletionCreateView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class UserAchievementsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """Retorna todas as conquistas desbloqueadas pelo usuário autenticado."""
+        achievements = models.UserAchievement.objects.filter(user=request.user)
+        serializer = serializers.UserAchievementSerializer(achievements, many=True)
+        return Response(serializer.data)
