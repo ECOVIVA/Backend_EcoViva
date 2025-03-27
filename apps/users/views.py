@@ -1,10 +1,12 @@
 from django.shortcuts import get_list_or_404, get_object_or_404
 from django.http import Http404
+from django.db import transaction
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from . import models, serializers
+from .email.send_email import send_confirmation_email
 from apps.users.auth import permissions as permissions_news
 
 """
@@ -51,50 +53,25 @@ class UserCreateView(APIView):
             serializer = serializers.UsersSerializer(data=data)
 
             if serializer.is_valid():
-                user = serializer.save()
+                with transaction.atomic():
+                    user = serializer.save()
+                    try:
+                        send_confirmation_email(user)
+                    except Exception as e:
+                        response = Response(
+                        {'detail': str(e)},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
 
-                # Gera tokens JWT para o novo usuário.
-                refresh = RefreshToken.for_user(user)
-                access_token = str(refresh.access_token)
+                    response = Response(
+                        {'detail': 'Usuário criado com sucesso!!!'},
+                        status=status.HTTP_201_CREATED
+                    )
 
-                # Cria a resposta com os detalhes do usuário recém-criado.
-                response = Response(
-                    {'detail': 'Usuário criado com sucesso!!!', 'user': serializer.data},
-                    status=status.HTTP_201_CREATED
-                )
+                    return response
 
-                # Define o cookie de access_token (válido por 5 minutos).
-                response.set_cookie(
-                    key='access_token',
-                    value=access_token,
-                    secure=True,
-                    httponly=True,
-                    samesite='None',
-                    max_age=15*60
-                )
-
-                # Define o cookie de refresh_token (válido por 24 horas).
-                response.set_cookie(
-                    key='refresh_token',
-                    value=str(refresh),
-                    secure=True,
-                    httponly=True,
-                    samesite='None',
-                    max_age = 30*24*60*60
-                )
-
-                response.set_cookie(
-                    key='isAuthenticated',
-                    value = True,
-                    secure=True,
-                    httponly=False,
-                    samesite='None',
-                )
-
-                return response
-
-            # Retorna erros de validação do serializer.
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                # Retorna erros de validação do serializer.
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             # Retorna uma mensagem de erro detalhada em caso de falha.
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)

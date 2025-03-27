@@ -55,7 +55,7 @@ class Users(AbstractUser):
     bio = models.TextField(max_length = 256, null = True, default = None)
     phone = models.CharField(max_length=15, blank=False, null=False)
     photo = models.ImageField(upload_to = "users_photos",  validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png']),validate_image_size, validate_image_dimensions,], null=True, blank=True)
-
+    is_active = models.BooleanField(default=False)
     objects = UsersManager()
 
     groups = None

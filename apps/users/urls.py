@@ -1,4 +1,5 @@
 from django.urls import path, include
+from .email.views import EmailConfirmAPIView
 from . import views
 
 """
@@ -22,5 +23,6 @@ urlpatterns = [
     path('detail/<str:username>/', views.UserDetailView.as_view(), name="user_detail"),
     path('update/<str:username>/', views.UserUpdateView.as_view(), name="user_update"),
     path('delete/<str:username>/', views.UserDeleteView.as_view(), name="user_delete"),
+    path('confirm-email/<uidb64>/<token>/', EmailConfirmAPIView.as_view(), name='confirm_email'),
     path('bubble/', include('apps.bubble.urls')),
 ]
