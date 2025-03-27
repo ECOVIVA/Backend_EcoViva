@@ -7,8 +7,13 @@ class LoginUserSerializer(serializers.Serializer):
 
     def validate(self, data):
         user = authenticate(email=data['email'], password=data['password'])
+
         if user and user.is_active:
             data['user'] = user
             return data
         
-        raise serializers.ValidationError({'detail': "Credenciais Incorretas!!"})
+        elif user and not user.is_active:
+            raise serializers.ValidationError({'detail': "Autentique seu email para conseguir o acesso!!"})
+        
+        
+        raise serializers.ValidationError({'detail': "Usuario ou senha incorreta!!"})

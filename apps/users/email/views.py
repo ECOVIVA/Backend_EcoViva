@@ -3,11 +3,12 @@ from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, permissions
 from ..models import Users
 from .tokens import email_confirmation_token
 
 class EmailConfirmAPIView(APIView):
+    permission_classes = [permissions.AllowAny]
     def get(self, request, uidb64, token):
         try:
             # Decodifica o ID do usuário
