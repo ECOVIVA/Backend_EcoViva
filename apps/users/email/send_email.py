@@ -11,7 +11,7 @@ def send_confirmation_email(user):
     uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
     token = email_confirmation_token.make_token(user)
 
-    confirmation_url = settings.BACKEND_URL + reverse('users:confirm_email', args=[uidb64, token])
+    confirmation_url = settings.BACKEND_URL + reverse('confirm_email', args=[uidb64, token])
 
     subject = "Confirme seu e-mail"
     from_email = settings.DEFAULT_FROM_EMAIL
@@ -28,4 +28,4 @@ def send_confirmation_email(user):
     email = EmailMultiAlternatives(subject, text_content, from_email, recipient_list)
     email.attach_alternative(html_content, "text/html")  # Anexa a versão HTML
 
-    email.send()  # Envia o e-mail
+    email.send()  

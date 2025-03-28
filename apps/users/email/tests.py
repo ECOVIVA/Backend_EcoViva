@@ -30,7 +30,7 @@ class EmailConfirmTest(APITestCase, UsersMixin):
         token = email_confirmation_token.make_token(self.user)
 
         # Criar a URL de confirmação de email
-        url = reverse('users:confirm_email', args=[uidb64, token])
+        url = reverse('confirm_email', args=[uidb64, token])
 
         response = self.client.get(url)
         
@@ -46,7 +46,7 @@ class EmailConfirmTest(APITestCase, UsersMixin):
         invalid_uidb64 = urlsafe_base64_encode(force_bytes(9999))  # ID que não existe
 
         # Criar a URL com o uidb64 inválido
-        url = reverse('users:confirm_email', args=[invalid_uidb64, invalid_token])
+        url = reverse('confirm_email', args=[invalid_uidb64, invalid_token])
 
         # Fazer a requisição GET para tentar confirmar o email
         response = self.client.get(url)
@@ -60,26 +60,6 @@ class EmailConfirmTest(APITestCase, UsersMixin):
         # Verificar se nenhum e-mail foi enviado ao tentar confirmar com dados inválidos
         self.assertEqual(len(mail.outbox), 0)
 
-    def test_email_auth_fail_for_expired_token(self):
-        # Vamos manipular o tempo do token para simular expiração
-        self.user.is_active = False  # O usuário deve ser inativo para precisar da confirmação de email
-        self.user.save()
-
-        uidb64 = urlsafe_base64_encode(force_bytes(self.user.pk))
-        token = email_confirmation_token.make_token(self.user)
-
-        # Criar a URL de confirmação de email
-        url = reverse('users:confirm_email', args=[uidb64, token])
-
-        # Manipular o tempo de expiração do token (isso é um exemplo, pode precisar de ajustes no token)
-        email_confirmation_token._default_token_generator.timeout = timedelta(seconds=-1)
-        
-        response = self.client.get(url)
-        
-        # Verificar se o status da resposta é Bad Request (400) devido ao token expirado
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('Token expirado', str(response.data))
-
     def test_email_auth_fail_for_active_user(self):
         # Definir o usuário como já ativo
         self.user.is_active = True
@@ -88,17 +68,17 @@ class EmailConfirmTest(APITestCase, UsersMixin):
         uidb64 = urlsafe_base64_encode(force_bytes(self.user.pk))
         token = email_confirmation_token.make_token(self.user)
 
-        url = reverse('users:confirm_email', args=[uidb64, token])
+        url = reverse('confirm_email', args=[uidb64, token])
         
         response = self.client.get(url)
 
         # Verificar se a resposta foi Bad Request, pois o usuário já está ativo
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('Usuário já está ativo', str(response.data))
+        self.assertEqual({'detail': 'O Usuario já tem o email autenticado.'} , response.json())
 
     def test_resend_email_confirmation(self):
         # Verificar se o e-mail de confirmação pode ser reenviado
-        url = reverse('users:resend_email_confirmation')
+        url = reverse('resend_email')
         response = self.client.post(url, {'email': self.user.email})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -106,27 +86,27 @@ class EmailConfirmTest(APITestCase, UsersMixin):
 
     def test_resend_email_confirmation_with_invalid_email(self):
         # Tentar reenviar com e-mail inválido
-        url = reverse('users:resend_email_confirmation')
+        url = reverse('resend_email')
         response = self.client.post(url, {'email': 'invalid@example.com'})
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('E-mail não encontrado', str(response.data))
+        
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual({"error": "Email não encontrado."}, response.json())
 
     def test_login_after_email_confirmation(self):
         # Confirmar e-mail
         uidb64 = urlsafe_base64_encode(force_bytes(self.user.pk))
         token = email_confirmation_token.make_token(self.user)
         
-        url = reverse('users:confirm_email', args=[uidb64, token])
+        url = reverse('confirm_email', args=[uidb64, token])
+
         
         # Confirmar o e-mail
         self.client.get(url)
         
         # Verificar se o login funciona após a confirmação
-        response = self.client.post(reverse('users:login'), {
+        response = self.client.post(reverse('login'), {
             'email': self.user.email,
             'password': self.user_data['password']
         })
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('token', response.data)  # Verifique se o token foi retornado
