@@ -26,10 +26,9 @@ class LoginView(APIView):
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
         user_data = UsersSerializer(user).data
-        user_json = json.dumps(user_data, ensure_ascii=False)
 
         response = Response(
-            {"user": user_data, "detail": "Login realizado com sucesso."},
+            {"detail": "Login realizado com sucesso."},
             status=status.HTTP_200_OK
         )
 

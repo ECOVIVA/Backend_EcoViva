@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     "rest_framework_simplejwt",
     'corsheaders',
+    'apps',
     'apps.bubble',
     'apps.forum',
     'apps.study',
@@ -62,7 +63,7 @@ ROOT_URLCONF = 'project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -134,6 +135,18 @@ AUTHENTICATION_BACKENDS = [
     'apps.users.auth.auth.EmailBackend',  
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'localhost'  
+EMAIL_PORT = 1025
+EMAIL_USE_TLS = False
+EMAIL_HOST_USER = '' 
+EMAIL_HOST_PASSWORD = '' 
+EMAIL_FILE_PATH = "/tmp/emails"  
+DEFAULT_FROM_EMAIL = 'no-reply@ecoviva.com' 
+
+BACKEND_URL = "http://localhost:8000"
+FRONTEND_URL = "http://localhost:5174"
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5174", 

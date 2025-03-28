@@ -1,4 +1,5 @@
 from django.urls import path, include
+from .email.views import EmailConfirmAPIView
 from . import views
 
 """
